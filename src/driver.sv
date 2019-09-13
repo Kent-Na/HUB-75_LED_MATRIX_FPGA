@@ -14,7 +14,7 @@ module Driver (
     output logic g2, 
     output logic b2, 
 
-    output logic[0:3] abcd,
+    output logic[3:0] abcd,
 
     output logic clk,
     output logic lat,
@@ -30,7 +30,9 @@ CascadeCounter #(
 ) x_counter (
     .clock(clock),
     .reset(reset),
-    .carry_in(1'b1)
+    .carry_in(1'b1),
+
+    .carry_out(), .count(), .is_zero(), .is_max()
 );
 
 CascadeCounter #(
@@ -39,7 +41,9 @@ CascadeCounter #(
 ) y_counter (
     .clock(clock),
     .reset(reset),
-    .carry_in(x_counter.carry_out)
+    .carry_in(x_counter.carry_out),
+
+    .carry_out(), .count(), .is_zero(), .is_max()
 );
 
 CascadeCounter #(
@@ -48,7 +52,9 @@ CascadeCounter #(
 ) frame_counter (
     .clock(clock),
     .reset(reset),
-    .carry_in(y_counter.carry_out)
+    .carry_in(y_counter.carry_out),
+
+    .carry_out(), .count(), .is_zero(), .is_max()
 );
 
 CascadeCounter #(
@@ -57,12 +63,14 @@ CascadeCounter #(
 ) sequence_counter (
     .clock(clock),
     .reset(reset),
-    .carry_in(frame_counter.carry_out)
+    .carry_in(frame_counter.carry_out),
+
+    .carry_out(), .count(), .is_zero(), .is_max()
 );
 
 always_comb begin
     oe = 1'b1;
-    lat = 1'b0;
+    lat = x_counter.is_max & y_counter.count[0];
     clk = clock;
 
     r1 = sequence_counter.count[0];
@@ -73,7 +81,7 @@ always_comb begin
     g2 = sequence_counter.count[1];
     b2 = sequence_counter.count[2];
 
-    abcd = y_counter.count[1:5];
+    abcd = y_counter.count[5:1];
 end
 
 endmodule

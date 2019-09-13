@@ -12,13 +12,13 @@ module CascadeCounter
     input logic carry_in ,
     output logic carry_out ,
 
-    output logic[0:bit_width-1] count,
+    output logic[bit_width-1:0] count,
 
     output logic is_zero,
     output logic is_max
 );
 
-typedef logic[0:bit_width-1] Counter;
+typedef logic[bit_width-1:0] Counter;
 
 generate
 
@@ -35,7 +35,7 @@ always_comb begin
     is_max = (count_current == count_max);
     is_zero = (count_current == 1'b0);
     count = count_current;
-    carry_out = is_max;
+    carry_out = is_max & carry_in;
 
     if (carry_in && is_max) begin
         count_next = 1'b0;

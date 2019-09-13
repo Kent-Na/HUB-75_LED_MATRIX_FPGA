@@ -10,7 +10,14 @@ logic reset;
 Driver#(
 ) driver(
     .clock(clock),
-    .reset(reset)
+    .reset(reset),
+
+    .r1(), .g1(), .b1(),
+    .r2(), .g2(), .b2(),
+
+    .abcd(),
+
+    .clk(), .lat(), .oe()
 );
 
 initial begin

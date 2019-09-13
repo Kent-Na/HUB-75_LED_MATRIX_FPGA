@@ -14,7 +14,9 @@ CascadeCounter#(
     .clock(clock),
     .reset(reset),
     
-    .carry_in(1'b1)
+    .carry_in(1'b1),
+
+    .carry_out(), .count(), .is_zero(), .is_max()
 );
 
 CascadeCounter#(
@@ -24,7 +26,9 @@ CascadeCounter#(
     .clock(clock),
     .reset(reset),
     
-    .carry_in(counter_1.carry_out)
+    .carry_in(counter_1.carry_out),
+
+    .carry_out(), .count(), .is_zero(), .is_max()
 );
 
 initial begin
