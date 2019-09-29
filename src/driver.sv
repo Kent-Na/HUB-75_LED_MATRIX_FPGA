@@ -14,7 +14,7 @@ module Driver (
     output logic g2, 
     output logic b2, 
 
-    output logic[3:0] abcd,
+    output logic[3:0] abcde,
 
     output logic clk,
     output logic lat,
@@ -70,7 +70,7 @@ CascadeCounter #(
 
 always_comb begin
     oe = 1'b1;
-    lat = x_counter.is_max & y_counter.count[0];
+    lat = x_counter.is_max;
     clk = clock;
 
     r1 = sequence_counter.count[0];
@@ -81,7 +81,7 @@ always_comb begin
     g2 = sequence_counter.count[1];
     b2 = sequence_counter.count[2];
 
-    abcd = y_counter.count[5:1];
+    abcde = y_counter.count;
 end
 
 endmodule
