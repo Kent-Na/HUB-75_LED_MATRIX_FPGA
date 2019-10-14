@@ -22,9 +22,11 @@ typedef logic[bit_width-1:0] Counter;
 
 generate
 
-if ($clog2(count_max) > bit_width) begin
-    $error("Insufficient bit_width for counter.");
-end
+// TODO: Conditional compile following check.
+
+//if ($clog2(count_max) > bit_width) begin
+//    $error("Insufficient bit_width for counter.");
+//end
 
 endgenerate
 
@@ -48,7 +50,7 @@ end
 
 always_ff @(posedge clock, reset) begin
     if (reset) begin
-        count_current = 0'b0;
+        count_current = 1'b0;
     end else begin
         count_current = count_next;
     end
