@@ -108,7 +108,7 @@ set_interface_property abcde PORT_NAME_MAP ""
 set_interface_property abcde CMSIS_SVD_VARIABLES ""
 set_interface_property abcde SVD_ADDRESS_GROUP ""
 
-add_interface_port abcde abcde abcde Output 4
+add_interface_port abcde abcde abcde Output 5
 
 
 # 
@@ -123,12 +123,12 @@ set_interface_property rgb_12 PORT_NAME_MAP ""
 set_interface_property rgb_12 CMSIS_SVD_VARIABLES ""
 set_interface_property rgb_12 SVD_ADDRESS_GROUP ""
 
+add_interface_port rgb_12 r1 r1 Output 1
 add_interface_port rgb_12 g1 g1 Output 1
 add_interface_port rgb_12 b1 b1 Output 1
+add_interface_port rgb_12 r2 r2 Output 1
 add_interface_port rgb_12 b2 b2 Output 1
 add_interface_port rgb_12 g2 g2 Output 1
-add_interface_port rgb_12 r2 r2 Output 1
-add_interface_port rgb_12 r1 r1 Output 1
 
 
 # 

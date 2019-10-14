@@ -48,7 +48,7 @@ always_comb begin
     end 
 end
 
-always_ff @(posedge clock, reset) begin
+always_ff @(posedge clock, posedge reset) begin
     if (reset) begin
         count_current = 1'b0;
     end else begin
