@@ -2,27 +2,36 @@
 
 // Ref: https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview
 
+interface DriveSignal;
+    logic r1; 
+    logic g1; 
+    logic b1; 
+
+    logic r2; 
+    logic g2; 
+    logic b2; 
+
+    logic[4:0] abcde;
+
+    logic clk;
+    logic lat;
+    logic oe;
+endinterface 
+
 module Driver (
     input logic clock,
     input logic reset,
 
-    output logic r1, 
-    output logic g1, 
-    output logic b1, 
+    input logic[4:0] y,
+    input logic[9:0] frame_count,
+    input logic start,
+    output logic is_idle,
 
-    output logic r2, 
-    output logic g2, 
-    output logic b2, 
-
-    output logic[4:0] abcde,
-
-    output logic clk,
-    output logic lat,
-    output logic oe
+    DriveSignal drive_signal
 );
 
-parameter k_width = 64;
-parameter k_height = 64;
+//parameter k_width = 64;
+//parameter k_height = 64;
 
 logic[0:0] clk_counter_is_max;
 logic clk_counter_carry_out;
@@ -31,17 +40,15 @@ logic lat_counter_carry_out;
 logic[5:0] x_counter_count;
 logic x_counter_carry_out;
 logic x_counter_is_max;
-logic y_counter_carry_out;
-logic[4:0] y_counter_count;
-logic frame_counter_carry_out;
-logic[7:0] sequence_counter_count;
 
 typedef enum {
+    kWait,
     kLatWait,
     kLatActive
-} LatState;
+} State;
 
-LatState lat_state = kLatWait;
+State state_current;
+State state_next;
 
 CascadeCounter #(
     .bit_width(1),
@@ -60,7 +67,7 @@ CascadeCounter #(
 ) x_counter (
     .clock(clock),
     .reset(reset),
-    .carry_in(clk_counter_carry_out && (lat_state == kLatWait)),
+    .carry_in(clk_counter_carry_out && (state_current == kLatWait)),
 
     .carry_out(x_counter_carry_out), .count(x_counter_count), .is_zero(), .is_max(x_counter_is_max)
 );
@@ -71,93 +78,84 @@ CascadeCounter #(
 ) lat_counter (
     .clock(clock),
     .reset(reset),
-    .carry_in(clk_counter_carry_out && (lat_state == kLatActive)),
+    .carry_in(clk_counter_carry_out && (state_current == kLatActive)),
 
     .carry_out(lat_counter_carry_out), .count(), .is_zero(), .is_max(lat_counter_is_max)
 );
 
-always_ff @(posedge clock, posedge reset) begin
-    if (reset) begin
-        lat_state = kLatWait;
-    end else if (~clk_counter_is_max) begin
-        lat_state = lat_state;
-    end else if (lat_state == kLatWait) begin
-        if (x_counter_is_max) begin
-            lat_state = kLatActive;
+assign is_idle = state_current == kWait;
+
+always_comb begin
+    if (state_current == kWait) begin
+        if (start) begin
+            state_next <= kLatWait;
         end else begin
-            lat_state = kLatWait;
+            state_next <= kWait;
         end
-    end else if (lat_state == kLatActive && lat_counter_is_max) begin
-        lat_state = kLatWait;
+    end else if (~clk_counter_is_max) begin
+        state_next <= state_current;
+    end else if (state_current == kLatWait) begin
+        if (x_counter_is_max) begin
+            state_next <= kLatActive;
+        end else begin
+            state_next <= kLatWait;
+        end
+    end else if (state_current == kLatActive && lat_counter_is_max) begin
+        state_next <= kWait;
+    end else begin
+        state_next <= state_current;
     end
 end
 
-CascadeCounter #(
-    .bit_width(6),
-    .count_max('h1f)
-) y_counter (
-    .clock(clock),
-    .reset(reset),
-    .carry_in(lat_counter_carry_out),
-
-    .carry_out(y_counter_carry_out), .count(y_counter_count), .is_zero(), .is_max()
-);
-
-CascadeCounter #(
-    .bit_width(10),
-    .count_max('h7f)
-) frame_counter (
-    .clock(clock),
-    .reset(reset),
-    .carry_in(y_counter_carry_out),
-
-    .carry_out(frame_counter_carry_out), .count(), .is_zero(), .is_max()
-);
-
-CascadeCounter #(
-    .bit_width(8),
-    .count_max('h8)
-) sequence_counter (
-    .clock(clock),
-    .reset(reset),
-    .carry_in(frame_counter_carry_out),
-
-    .carry_out(), .count(sequence_counter_count), .is_zero(), .is_max()
-);
+always_ff @(posedge clock, posedge reset) begin
+    if (reset) begin
+        state_current = kWait;
+    end else begin
+        state_current = state_next;
+    end
+end
 
 always_comb begin
-    oe = (x_counter_count > 'h4) && (x_counter_count < 'h38);
-    lat = lat_state == kLatActive;
-    clk = clk_counter_is_max;
+    drive_signal.oe <= ~((x_counter_count > 'h10) && (x_counter_count < 'h30));
+    drive_signal.lat <= state_current == kLatActive;
 
-    r1 = sequence_counter_count[0];
-    g1 = sequence_counter_count[1];
-    b1 = sequence_counter_count[2];
+    //drive_signal.oe <= ~((x_counter_count > 'h10) && (x_counter_count < 'h30));
+    //drive_signal.lat <= state_current == kLatActive;
+    
+    // drive_signal.clk = clk_counter_is_max && (state_current != kWait);
+    drive_signal.clk <= clk_counter_is_max;
 
-    r2 = sequence_counter_count[0];
-    g2 = sequence_counter_count[1];
-    b2 = sequence_counter_count[2];
+/*
+    drive_signal.r1 = frame_count[0+5];
+    drive_signal.g1 = frame_count[1+5];
+    drive_signal.b1 = frame_count[2+5];
 
-    abcde = y_counter_count;
+    drive_signal.r2 = frame_count[0+5];
+    drive_signal.g2 = frame_count[1+5];
+    drive_signal.b2 = frame_count[2+5];
+    */
+
+    drive_signal.r1 <= x_counter_count[0];
+    drive_signal.g1 <= x_counter_count[1];
+    drive_signal.b1 <= x_counter_count[2];
+
+    drive_signal.r2 <= x_counter_count[0];
+    drive_signal.g2 <= x_counter_count[1];
+    drive_signal.b2 <= x_counter_count[2];
+/*
+    drive_signal.r1 = 1'b1;
+    drive_signal.g1 = 1'b1;
+    drive_signal.b1 = 1'b1;
+
+    drive_signal.r2 = 1'b1;
+    drive_signal.g2 = 1'b1;
+    drive_signal.b2 = 1'b1;
+    */
+
+    drive_signal.abcde <= y;
 end
 
 endmodule
-
-interface DriveSignal;
-    logic r1; 
-    logic g1; 
-    logic b1; 
-
-    logic r2; 
-    logic g2; 
-    logic b2; 
-
-    logic[4:0] abcde;
-
-    logic clk;
-    logic lat;
-    logic oe;
-endinterface 
 
 module DummyDriver (
     input logic clock,
@@ -215,7 +213,7 @@ module DummyPixelGenerator(
     input logic clock,
     input logic reset,
 
-    input logic y,
+    input logic[4:0] y,
     input logic start,
     output logic is_idle
 );
@@ -248,6 +246,8 @@ always_comb begin
         state_next = kRun;
     end else if (state_current == kRun && x_counter_is_max) begin
         state_next = kWait;
+    end else begin
+        state_next = state_current;
     end
 end
 

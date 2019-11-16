@@ -1,5 +1,49 @@
 `timescale 1 ns / 1 ns
 
+module Controller_q_ip (
+    input logic clock,
+    input logic reset,
+
+    output logic r1,
+    output logic g1,
+    output logic b1,
+
+    output logic r2,
+    output logic g2,
+    output logic b2,
+
+    output logic[4:0] abcde,
+
+    output logic clk,
+    output logic lat,
+    output logic oe
+);
+
+DriveSignal drive_signal(
+);
+
+assign r1 = drive_signal.r1;
+assign g1 = drive_signal.g1;
+assign b1 = drive_signal.b1;
+
+assign r2 = drive_signal.r2;
+assign g2 = drive_signal.g2;
+assign b2 = drive_signal.b2;
+
+assign abcde = drive_signal.abcde;
+
+assign clk = drive_signal.clk;
+assign lat = drive_signal.lat;
+assign oe = drive_signal.oe;
+
+Controller controller(
+    .clock(clock),
+    .reset(reset),
+    .drive_signal(drive_signal)
+);
+
+endmodule
+
 module Controller (
     input logic clock,
     input logic reset,
@@ -15,6 +59,10 @@ logic line_buffer_read_data;
 logic line_buffer_write_address;
 logic line_buffer_write_data;
 logic line_buffer_write_enable;
+
+logic[4:0] driver_y;
+logic[4:0] generator_y;
+logic[9:0] frame_count;
 
 LineBuffer#(
     .address_width(7), // 64 pixel x 2 buffer
@@ -34,11 +82,12 @@ LineBuffer#(
 logic driver_start;
 logic driver_is_idle;
 
-DummyDriver driver(
+Driver driver(
     .clock(clock),
     .reset(reset),
 
-    .y(),
+    .y(driver_y),
+    .frame_count(frame_count),
     .start(driver_start),
     .is_idle(driver_is_idle),
 
@@ -55,7 +104,7 @@ DummyPixelGenerator pixel_generator(
     .clock(clock),
     .reset(reset),
 
-    .y(),
+    .y(generator_y),
     .start(generator_start),
     .is_idle(generator_is_idle)
 );
@@ -69,33 +118,39 @@ logic generator_y_is_max;
 
 logic frame_count_carry_in;
 
-logic[9:0] frame_count;
+parameter count_max = 'h1f;
 
 CascadeCounter #(
     .bit_width(5),
-    .count_max('h3)
+    .count_max(count_max)
 ) generator_y_counter(
     .clock(clock),
     .reset(reset),
     .carry_in(generator_y_carry_in),
 
-    .carry_out(), .count(), .is_zero(generator_y_is_zero), .is_max(generator_y_is_max)
+    .carry_out(), 
+    .count(generator_y), 
+    .is_zero(generator_y_is_zero), 
+    .is_max(generator_y_is_max)
 );
 
 CascadeCounter #(
     .bit_width(5),
-    .count_max('h3)
+    .count_max(count_max)
 ) driver_y_counter(
     .clock(clock),
     .reset(reset),
     .carry_in(driver_y_carry_in),
 
-    .carry_out(), .count(), .is_zero(), .is_max(driver_y_is_max)
+    .carry_out(), 
+    .count(driver_y), 
+    .is_zero(), 
+    .is_max(driver_y_is_max)
 );
 
 CascadeCounter #(
     .bit_width(10),
-    .count_max('h7f)
+    .count_max('h3ff)
 ) frame_counter (
     .clock(clock),
     .reset(reset),
@@ -105,6 +160,7 @@ CascadeCounter #(
 );
 
 typedef enum {
+    kInit,
     kStartRow,
     kWaitRow
 } State;
@@ -113,55 +169,68 @@ State state_next;
 State state_current;
 
 always_comb begin
-    if (state_current == kStartRow) begin
-        state_next = kWaitRow;
-        driver_y_carry_in = 1'b0;
-        generator_y_carry_in = 1'b0;
+    if (state_current == kInit) begin
+        state_next <= kStartRow;
+        generator_start <= 1'b0;
+        driver_start <= 1'b0;
+        frame_count_carry_in <= 1'b0;
+        driver_y_carry_in <= 1'b0;
+        generator_y_carry_in <= 1'b0;
+    end else if (state_current == kStartRow) begin
+        state_next <= kWaitRow;
+        driver_y_carry_in <= 1'b0;
+        generator_y_carry_in <= 1'b0;
+        frame_count_carry_in <= 1'b0;
 
         if (generator_y_is_zero) begin
-            generator_start = 1'b1;
-            driver_start = 1'b0;
-            frame_count_carry_in = 1'b0;
+            generator_start <= 1'b1;
+            driver_start <= 1'b0;
         end else begin
-            generator_start = ~generator_y_is_max;
-            driver_start = ~driver_y_is_max;
-            frame_count_carry_in = 1'b0;
+            generator_start <= ~driver_y_is_max;
+            driver_start <= 1'b1;
         end
     end else if (state_current == kWaitRow) begin
-        generator_start = 1'b0;
-        driver_start = 1'b0;
+        generator_start <= 1'b0;
+        driver_start <= 1'b0;
 
         if (generator_is_idle && driver_is_idle) begin
-            state_next = kStartRow;
+            state_next <= kStartRow;
 
             if (generator_y_is_zero) begin
-                driver_y_carry_in = 1'b0;
-                generator_y_carry_in = 1'b1;
+                driver_y_carry_in <= 1'b0;
+                generator_y_carry_in <= 1'b1;
             end else if (generator_y_is_max && ~driver_y_is_max) begin
-                driver_y_carry_in = 1'b1;
-                generator_y_carry_in = 1'b0;
+                driver_y_carry_in <= 1'b1;
+                generator_y_carry_in <= 1'b0;
             end else begin
-                driver_y_carry_in = 1'b1;
-                generator_y_carry_in = 1'b1;
+                driver_y_carry_in <= 1'b1;
+                generator_y_carry_in <= 1'b1;
             end
 
             if (generator_y_is_max && driver_y_is_max) begin
-                frame_count_carry_in = 1'b1;
+                frame_count_carry_in <= 1'b1;
             end else begin
-                frame_count_carry_in = 1'b0;
+                frame_count_carry_in <= 1'b0;
             end
         end else begin
-            state_next = kWaitRow;
-            frame_count_carry_in = 1'b0;
-            driver_y_carry_in = 1'b0;
-            generator_y_carry_in = 1'b0;
+            state_next <= kWaitRow;
+            frame_count_carry_in <= 1'b0;
+            driver_y_carry_in <= 1'b0;
+            generator_y_carry_in <= 1'b0;
         end
+    end else begin
+        state_next <= kWaitRow;
+        generator_start <= 1'b0;
+        driver_start <= 1'b0;
+        frame_count_carry_in <= 1'b0;
+        driver_y_carry_in <= 1'b0;
+        generator_y_carry_in <= 1'b0;
     end
 end
 
 always_ff @ (posedge clock, posedge reset) begin
     if (reset) begin
-        state_current = kStartRow;
+        state_current = kInit;
     end else begin
         state_current = state_next;
     end

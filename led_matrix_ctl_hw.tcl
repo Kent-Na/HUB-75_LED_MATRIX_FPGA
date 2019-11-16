@@ -36,25 +36,31 @@ set_module_property REPORT_HIERARCHY false
 # file sets
 # 
 add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
-set_fileset_property QUARTUS_SYNTH TOP_LEVEL Driver
+set_fileset_property QUARTUS_SYNTH TOP_LEVEL Controller_q_ip
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file driver.sv SYSTEM_VERILOG PATH src/driver.sv TOP_LEVEL_FILE
+add_fileset_file controller.sv SYSTEM_VERILOG PATH src/controller.sv TOP_LEVEL_FILE
+add_fileset_file driver.sv SYSTEM_VERILOG PATH src/driver.sv
 add_fileset_file cascade_counter.sv SYSTEM_VERILOG PATH src/cascade_counter.sv
+add_fileset_file line_buffer.sv SYSTEM_VERILOG PATH src/line_buffer.sv
 
 add_fileset SIM_VERILOG SIM_VERILOG "" ""
-set_fileset_property SIM_VERILOG TOP_LEVEL Driver
+set_fileset_property SIM_VERILOG TOP_LEVEL Controller_q_ip
 set_fileset_property SIM_VERILOG ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property SIM_VERILOG ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file cascade_counter.sv SYSTEM_VERILOG PATH src/cascade_counter.sv
+add_fileset_file controller.sv SYSTEM_VERILOG PATH src/controller.sv TOP_LEVEL_FILE
 add_fileset_file driver.sv SYSTEM_VERILOG PATH src/driver.sv
+add_fileset_file cascade_counter.sv SYSTEM_VERILOG PATH src/cascade_counter.sv
+add_fileset_file line_buffer.sv SYSTEM_VERILOG PATH src/line_buffer.sv
 
 add_fileset SIM_VHDL SIM_VHDL "" ""
-set_fileset_property SIM_VHDL TOP_LEVEL Driver
+set_fileset_property SIM_VHDL TOP_LEVEL Controller_q_ip
 set_fileset_property SIM_VHDL ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property SIM_VHDL ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file cascade_counter.sv SYSTEM_VERILOG PATH src/cascade_counter.sv
+add_fileset_file controller.sv SYSTEM_VERILOG PATH src/controller.sv TOP_LEVEL_FILE
 add_fileset_file driver.sv SYSTEM_VERILOG PATH src/driver.sv
+add_fileset_file cascade_counter.sv SYSTEM_VERILOG PATH src/cascade_counter.sv
+add_fileset_file line_buffer.sv SYSTEM_VERILOG PATH src/line_buffer.sv
 
 
 # 
