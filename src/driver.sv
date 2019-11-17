@@ -118,7 +118,8 @@ end
 
 always_comb begin
     drive_signal.oe <= ~((x_counter_count > 'h10) && (x_counter_count < 'h30));
-    drive_signal.lat <= state_current == kLatActive;
+    drive_signal.lat <= x_counter_is_max & (state_current == kLatWait);
+    // state_current == kLatActive;
 
     drive_signal.clk <= clk_counter_is_max;
 

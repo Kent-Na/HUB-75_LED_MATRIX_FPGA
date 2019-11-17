@@ -6,7 +6,7 @@ module SinTable (
     output logic[8:0] value
 );
 
-logic[8:0] _table[1<<10] = {
+logic[8:0] _table[1024] = '{
 9'h0, 9'h1, 9'h2, 9'h2, 9'h3, 9'h4, 9'h5, 9'h5,
 9'h6, 9'h7, 9'h8, 9'h9, 9'h9, 9'ha, 9'hb, 9'hc,
 9'hd, 9'hd, 9'he, 9'hf, 9'h10, 9'h10, 9'h11, 9'h12,
@@ -148,6 +148,8 @@ module NormalGenerator (
     output logic[9:0] cos
 );
 
+logic[1:0] t_alpha;
+logic[9:0] t_beta;
 assign t_alpha = t[11:10];
 assign t_beta = t[9:0];
 
@@ -161,17 +163,17 @@ SinTable sin_table(
 
 always_comb begin
     if (t_alpha == 'b00) begin
-        t_dash_for_sin = t_beta;
-        sin_value = sin_table_value;
+        t_dash_for_sin <= t_beta;
+        sin_value <= sin_table_value;
     end else if (t_alpha == 'b01) begin
-        t_dash_for_sin = 'd1024 - t_beta;
-        sin_value = sin_table_value;
+        t_dash_for_sin <= 'd1023 - t_beta;
+        sin_value <= sin_table_value;
     end else if (t_alpha == 'b10) begin
-        t_dash_for_sin = t_beta;
-        sin_value = -sin_table_value;
-    end else begin
-        t_dash_for_sin = 'd1024 - t_beta;
-        sin_value = -sin_table_value;
+        t_dash_for_sin <= t_beta;
+        sin_value <= -sin_table_value;
+    end else begin // 'b11
+        t_dash_for_sin <= 'd1023 - t_beta;
+        sin_value <= -sin_table_value;
     end
 end
 
@@ -186,18 +188,23 @@ SinTable cos_table(
 
 always_comb begin
     if (t_alpha == 'b00) begin
-        t_dash_for_cos = 'd1024 - t_beta;
-        cos_value = cos_table_value;
+        t_dash_for_cos <= 'd1023 - t_beta;
+        cos_value <= cos_table_value;
     end else if (t_alpha == 'b01) begin
-        t_dash_for_cos = t_beta;
-        cos_value = -cos_table_value;
+        t_dash_for_cos <= t_beta;
+        cos_value <= -cos_table_value;
     end else if (t_alpha == 'b10) begin
-        t_dash_for_cos = 'd1024 - t_beta;
-        cos_value = -cos_table_value;
-    end else begin
-        t_dash_for_cos = t_beta;
-        cos_value = cos_table_value;
+        t_dash_for_cos <= 'd1023 - t_beta;
+        cos_value <= -cos_table_value;
+    end else begin // 'b11
+        t_dash_for_cos <= t_beta;
+        cos_value <= cos_table_value;
     end
+end
+
+always_comb begin
+    sin <= sin_value;
+    cos <= cos_value;
 end
 
 endmodule

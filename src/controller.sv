@@ -103,7 +103,7 @@ Driver driver(
 logic generator_start;
 logic generator_is_idle;
 
-PixelGenerator pixel_generator(
+PixelGenerator_sx pixel_generator(
     .clock(clock),
     .reset(reset),
 
