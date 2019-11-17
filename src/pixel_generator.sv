@@ -136,15 +136,16 @@ always_comb begin
         {8{x_counter_count[2]}}
     } & 
     */
-    /*
     {2{
             {16{x_counter_count < (sin_t[9:4] + 6'h20)}},
             {8{x_counter_count < (cos_t[9:4] + 6'h20)}}
     }};
-    */
+    
+    /*
     {6{
             {8{x_counter_count < {y, 1'b0}}}
     }};
+    */
     write_enable <= state_current == kRun;
 end
 

@@ -180,7 +180,7 @@ end
 
 logic[9:0] t_dash_for_cos;
 logic[8:0] cos_table_value;
-logic[8:0] cos_value;
+logic[9:0] cos_value;
 SinTable cos_table(
     .theta_dash(t_dash_for_cos),
     .value(cos_table_value)
