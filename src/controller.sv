@@ -53,11 +53,14 @@ module Controller (
 
 // TODO: Set bit width for those signals.
 
-logic line_buffer_read_address;
-logic line_buffer_read_data;
+parameter address_width = 7; //64 pixel x 2 buffer
+parameter data_width = 48;
 
-logic line_buffer_write_address;
-logic line_buffer_write_data;
+logic[address_width-1:0] line_buffer_read_address;
+logic[data_width-1:0] line_buffer_read_data;
+
+logic[address_width-1:0] line_buffer_write_address;
+logic[data_width-1:0] line_buffer_write_data;
 logic line_buffer_write_enable;
 
 logic[4:0] driver_y;
@@ -65,8 +68,8 @@ logic[4:0] generator_y;
 logic[9:0] frame_count;
 
 LineBuffer#(
-    .address_width(7), // 64 pixel x 2 buffer
-    .data_width(48)
+    .address_width(address_width),
+    .data_width(data_width)
 ) line_buffer(
     .clock(clock),
     .reset(reset),
@@ -91,8 +94,8 @@ Driver driver(
     .start(driver_start),
     .is_idle(driver_is_idle),
 
-    //.read_address(line_buffer_read_address),
-    //.read_data(line_buffer_read_data),
+    .read_address(line_buffer_read_address),
+    .read_data(line_buffer_read_data),
 
     .drive_signal(drive_signal)
 );
@@ -100,13 +103,18 @@ Driver driver(
 logic generator_start;
 logic generator_is_idle;
 
-DummyPixelGenerator pixel_generator(
+PixelGenerator pixel_generator(
     .clock(clock),
     .reset(reset),
 
     .y(generator_y),
+    .frame_count(frame_count),
     .start(generator_start),
-    .is_idle(generator_is_idle)
+    .is_idle(generator_is_idle),
+
+    .write_address(line_buffer_write_address),
+    .write_data(line_buffer_write_data),
+    .write_enable(line_buffer_write_enable)
 );
 
 logic driver_y_carry_in;
