@@ -39,7 +39,7 @@ CascadeCounter #(
 assign is_idle = state_current == kWait;
 
 always_comb begin
-    write_address <= {frame_count[0], x_counter_count};
+    write_address <= {y[0], x_counter_count};
     write_data <= {
         {8{x_counter_count[0]}},
         {8{x_counter_count[1]}},
@@ -124,7 +124,7 @@ always_comb begin
 end
 
 always_comb begin
-    write_address <= {frame_count[0], x_counter_count};
+    write_address <= {y[0], x_counter_count};
     write_data <= 
     /*
     {
