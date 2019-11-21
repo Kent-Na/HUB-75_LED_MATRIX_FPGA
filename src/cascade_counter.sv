@@ -9,8 +9,9 @@ module CascadeCounter
     input logic clock, 
     input logic reset,
 
-    input logic carry_in ,
-    output logic carry_out ,
+    input logic carry_in,
+    output logic carry_out,
+    input logic sync_reset,
 
     output logic[bit_width-1:0] count,
 
@@ -52,7 +53,11 @@ always_ff @(posedge clock, posedge reset) begin
     if (reset) begin
         count_current = 1'b0;
     end else begin
-        count_current = count_next;
+        if (sync_reset) begin
+            count_current = 1'b0;
+        end else begin
+            count_current = count_next;
+        end
     end
 end
 

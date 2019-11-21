@@ -50,6 +50,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(1'b1),
+    .sync_reset(1'b0),
 
     .carry_out(clk_counter_carry_out), .count(), .is_zero(), .is_max(clk_counter_is_max)
 );
@@ -61,6 +62,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(clk_counter_carry_out && (lat_state == kLatWait)),
+    .sync_reset(1'b0),
 
     .carry_out(x_counter_carry_out), .count(x_counter_count), .is_zero(), .is_max(x_counter_is_max)
 );
@@ -72,6 +74,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(clk_counter_carry_out && (lat_state == kLatActive)),
+    .sync_reset(1'b0),
 
     .carry_out(lat_counter_carry_out), .count(), .is_zero(), .is_max(lat_counter_is_max)
 );
@@ -99,6 +102,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(lat_counter_carry_out),
+    .sync_reset(1'b0),
 
     .carry_out(y_counter_carry_out), .count(y_counter_count), .is_zero(), .is_max()
 );
@@ -110,6 +114,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(y_counter_carry_out),
+    .sync_reset(1'b0),
 
     .carry_out(frame_counter_carry_out), .count(), .is_zero(), .is_max()
 );
@@ -121,6 +126,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(frame_counter_carry_out),
+    .sync_reset(1'b0),
 
     .carry_out(), .count(sequence_counter_count), .is_zero(), .is_max()
 );

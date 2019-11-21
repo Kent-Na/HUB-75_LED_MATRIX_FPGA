@@ -23,3 +23,10 @@ cov*/
 transcript*
 sc_dpiheader.h
 vsim.dbg
+
+# ignore output of Quartus
+*.qpf
+*.qsf
+*.qws
+db
+.qsys_edit

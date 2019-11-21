@@ -32,6 +32,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(state_current == kRun),
+    .sync_reset(1'b0),
 
     .carry_out(), .count(x_counter_count), .is_zero(), .is_max(x_counter_is_max)
 );
@@ -103,6 +104,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(state_current == kRun),
+    .sync_reset(1'b0),
 
     .carry_out(), .count(x_counter_count), .is_zero(), .is_max(x_counter_is_max)
 );
@@ -137,9 +139,16 @@ always_comb begin
     } & 
     */
     {2{
+            {1{sin_t[9:2] + 8'h80}},
+            {1{cos_t[9:2] + 8'h80}},
+            {1{cos_t[9:2] - 8'h80}}
+    }};
+    /* 
+    {2{
             {16{x_counter_count < (sin_t[9:4] + 6'h20)}},
             {8{x_counter_count < (cos_t[9:4] + 6'h20)}}
     }};
+    */
     
     /*
     {6{

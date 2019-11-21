@@ -85,7 +85,7 @@ LineBuffer#(
 logic driver_start;
 logic driver_is_idle;
 
-Driver driver(
+Driver_8bit driver(
     .clock(clock),
     .reset(reset),
 
@@ -135,6 +135,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(generator_y_carry_in),
+    .sync_reset(1'b0),
 
     .carry_out(), 
     .count(generator_y), 
@@ -149,6 +150,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(driver_y_carry_in),
+    .sync_reset(1'b0),
 
     .carry_out(), 
     .count(driver_y), 
@@ -163,6 +165,7 @@ CascadeCounter #(
     .clock(clock),
     .reset(reset),
     .carry_in(frame_count_carry_in),
+    .sync_reset(1'b0),
 
     .carry_out(), .count(frame_count), .is_zero(), .is_max()
 );
