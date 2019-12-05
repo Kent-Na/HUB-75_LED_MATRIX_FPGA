@@ -115,14 +115,25 @@ logic[11:0] t;
 logic[9:0] sin_t;
 logic[9:0] cos_t;
 
+logic[11:0] t2;
+logic[9:0] sin_t2;
+logic[9:0] cos_t2;
+
 NormalGenerator normal_generator(
     .t(t),
     .sin(sin_t),
     .cos(cos_t)
 );
 
+NormalGenerator normal_generator_2(
+    .t(t2),
+    .sin(sin_t2),
+    .cos(cos_t2)
+);
+
 always_comb begin
     t = {frame_count[9:4] + y, 7'b0};
+    t2 = {frame_count[9:4] + x_counter_count, 7'b0};
 end
 
 always_comb begin
@@ -141,7 +152,7 @@ always_comb begin
     {2{
             {1{sin_t[9:2] + 8'h80}},
             {1{cos_t[9:2] + 8'h80}},
-            {1{cos_t[9:2] - 8'h80}}
+            {1{cos_t2[9:2] + 8'h80}}
     }};
     /* 
     {2{
